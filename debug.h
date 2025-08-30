@@ -8,12 +8,12 @@ using ll = long long;
 
 // ================= PRINT FUNCTIONS =================
 
-template<typename T> 
+template<typename T>
 void _print(const T& x) {
     cerr << x;
 }
 
-template<typename T1, typename T2> 
+template<typename T1, typename T2>
 void _print(const pair<T1, T2>& a) {
     cerr << "{" << a.first << ", " << a.second << "}";
 }
@@ -21,7 +21,7 @@ void _print(const pair<T1, T2>& a) {
 template<typename T1, size_t N>
 void _print(const array<T1, N>&a) {
     cerr << "[";
-    for(auto& i : a) _print(i), cerr << " ";
+    for (auto& i : a) _print(i), cerr << " ";
     cerr << "]";
 }
 
@@ -61,22 +61,22 @@ void _print_tuple_impl(const Tuple& t, index_sequence<I...>) {
 template<typename... Args>
 void _print(const tuple<Args...>& t) {
     cerr << "(";
-    _print_tuple_impl(t, index_sequence_for<Args...>{});
+    _print_tuple_impl(t, index_sequence_for<Args...> {});
     cerr << ")";
 }
 
 
-template<typename T> 
+template<typename T>
 void _print(const vector<T>& a) {
     bool first = 1;
     cerr << "[";
-    for (auto& i : a){
-        if(!first) {
-            cerr<<" ";
+    for (auto& i : a) {
+        if (!first) {
+            cerr << " ";
         }
         _print(i);
         first = 0;
-    } 
+    }
     cerr << "]";
 }
 
@@ -107,7 +107,7 @@ void _print(priority_queue<T, vector<T>, greater<T>> pq) { // min-heap
 }
 
 
-template<typename T> 
+template<typename T>
 void _print(const vector<vector<T>>& a) {
     cerr << "[\n";
     for (auto& row : a) {
@@ -118,21 +118,21 @@ void _print(const vector<vector<T>>& a) {
     cerr << "]";
 }
 
-template<typename T> 
+template<typename T>
 void _print(const set<T>& a) {
     cerr << "{";
     for (auto& i : a) _print(i), cerr << " ";
     cerr << "}";
 }
 
-template<typename T> 
+template<typename T>
 void _print(const multiset<T>& a) {
     cerr << "{ ";
     for (auto& i : a) _print(i), cerr << " ";
     cerr << "}";
 }
 
-template<typename T1, typename T2> 
+template<typename T1, typename T2>
 void _print(const map<T1, T2>& a) {
     cerr << "{";
     for (auto& [key, val] : a) {
@@ -141,14 +141,14 @@ void _print(const map<T1, T2>& a) {
     cerr << "}";
 }
 
-template<typename T> 
+template<typename T>
 void _print(const unordered_set<T>& a) {
     cerr << "{";
     for (auto& i : a) _print(i), cerr << " ";
     cerr << "}";
 }
 
-template<typename T1, typename T2> 
+template<typename T1, typename T2>
 void _print(const unordered_map<T1, T2>& a) {
     cerr << "{";
     for (auto& [key, val] : a) {
@@ -157,13 +157,23 @@ void _print(const unordered_map<T1, T2>& a) {
     cerr << "}";
 }
 
-template<typename T1, typename T2> 
+template<typename T1, typename T2>
 void _print(const vector<pair<T1, T2>>& a) {
     cerr << "[";
     for (auto& p : a) _print(p), cerr << " ";
     cerr << "]";
 }
 
+
+template<typename T, size_t N>
+void _print(T (&a)[N]) {
+    cerr << "[";
+    for (size_t i = 0; i < N; i++) {
+        _print(a[i]);   // prints element
+        if (i + 1 < N) cerr << ", ";
+    }
+    cerr << "]";
+}
 
 
 // ================= VARIADIC DEBUG =================
@@ -172,12 +182,21 @@ void debug_out() {
     cerr << "\n";
 }
 
-template<typename T, typename... Args>
-void debug_out(T a, Args... args) {
-    _print(a);
-    cerr << "\n"; 
-    debug_out(args...);
+
+template<typename T>
+void debug_out(T&& a) {   // universal reference
+    _print(std::forward<T>(a));
+    cerr << "\n";
 }
+
+
+template<typename T, typename... Args>
+void debug_out(T&& a, Args&&... args) {
+    _print(std::forward<T>(a));
+    cerr << "\n";
+    debug_out(std::forward<Args>(args)...);
+}
+
 
 #define dbg(...) debug_out(__VA_ARGS__)
 
