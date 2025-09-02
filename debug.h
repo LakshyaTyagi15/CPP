@@ -6,330 +6,128 @@ using namespace std;
 
 using ll = long long;
 
-// ================= PRINT FUNCTIONS =================
+// ================== HELPER TRAITS ==================
+
+template <typename T, typename = void>
+struct is_iterable : false_type {};
 
 template <typename T>
-void _print(const T &x)
-{
-    cerr << x;
+struct is_iterable<T, void_t<decltype(begin(declval<T>())), decltype(end(declval<T>()))>> : true_type {};
+
+template <typename T>
+constexpr bool is_iterable_v = is_iterable<T>::value;
+
+// ================== PRINT FUNCTIONS ==================
+
+template <typename T>
+void _print(const T &x);
+
+// base types
+void _print(const string &s) { cerr << '"' << s << '"'; }
+void _print(const char *s) { cerr << '"' << s << '"'; }
+void _print(char c) { cerr << '\'' << c << '\''; }
+void _print(bool b) { cerr << (b ? "true" : "false"); }
+
+template <typename T>
+void _print(const complex<T> &c) { cerr << c.real() << "+" << c.imag() << "i"; }
+
+template <typename T>
+void _print(const optional<T> &opt) {
+    if (opt.has_value()) {
+        cerr << "Some(";
+        _print(opt.value());
+        cerr << ")";
+    } else {
+        cerr << "None";
+    }
 }
+
+// pair
 
 template <typename T1, typename T2>
-void _print(const pair<T1, T2> &a)
-{
-    cerr << "{" << a.first << ", " << a.second << "}";
+void _print(const pair<T1, T2> &a) {
+    cerr << "{";
+    _print(a.first);
+    cerr << ", ";
+    _print(a.second);
+    cerr << "}";
 }
 
-template <typename T1, size_t N>
-void _print(const array<T1, N> &a)
-{
-    cerr << "[";
-    for (auto &i : a)
-        _print(i), cerr << " ";
-    cerr << "]";
-}
-
-template <typename T>
-void _print(const deque<T> &a)
-{
-    cerr << "[";
-    for (auto &i : a)
-        _print(i), cerr << " ";
-    cerr << "]";
-}
-
-template <typename T>
-void _print(stack<T> s)
-{ // pass by value to pop
-    cerr << "[";
-    while (!s.empty())
-    {
-        _print(s.top());
-        cerr << " ";
-        s.pop();
-    }
-    cerr << "]";
-}
-
-template <typename T>
-void _print(queue<T> q)
-{ // pass by value to pop
-    cerr << "[";
-    while (!q.empty())
-    {
-        _print(q.front());
-        cerr << " ";
-        q.pop();
-    }
-    cerr << "]";
-}
+// tuple
 
 template <class Tuple, size_t... I>
-void _print_tuple_impl(const Tuple &t, index_sequence<I...>)
-{
-    ((_print(get<I>(t)), cerr << (I + 1 < sizeof...(I) ? ", " : "")), ...);
+void _print_tuple_impl(const Tuple &t, index_sequence<I...>) {
+    (( _print(get<I>(t)), cerr << (I + 1 < sizeof...(I) ? ", " : "") ), ...);
 }
 
 template <typename... Args>
-void _print(const tuple<Args...> &t)
-{
+void _print(const tuple<Args...> &t) {
     cerr << "(";
     _print_tuple_impl(t, index_sequence_for<Args...>{});
     cerr << ")";
 }
 
-template <typename T>
-void _print(const vector<T> &a)
-{
-    bool first = 1;
-    cerr << "[";
-    for (auto &i : a)
-    {
-        if (!first)
-        {
-            cerr << " ";
-        }
-        _print(i);
-        first = 0;
-    }
-    cerr << "]";
-}
-
-template <typename T>
-void _print(priority_queue<T> pq)
-{ // max-heap
-    cerr << "[";
-    while (!pq.empty())
-    {
-        _print(pq.top());
-        cerr << " ";
-        pq.pop();
-    }
-    cerr << "]";
-}
-
+// bitset
 template <size_t N>
-void _print(const bitset<N> &b)
-{
-    cerr << b;
-}
+void _print(const bitset<N> &b) { cerr << b; }
 
-template <typename T>
-void _print(priority_queue<T, vector<T>, greater<T>> pq)
-{ // min-heap
+template <>
+void _print(const vector<bool> &v) {
     cerr << "[";
-    while (!pq.empty())
-    {
-        _print(pq.top());
-        cerr << " ";
-        pq.pop();
+    for (size_t i = 0; i < v.size(); i++) {
+        cerr << (v[i] ? 1 : 0);
+        if (i + 1 < v.size()) cerr << " ";
     }
     cerr << "]";
 }
 
-template <typename T, typename Container, typename Compare>
-void _print(priority_queue<T, Container, Compare> pq)
-{
-    cerr << "[";
-    while (!pq.empty())
-    {
-        _print(pq.top());
-        cerr << " ";
-        pq.pop();
-    }
-    cerr << "]";
-}
+
+
+// ================== GENERIC CONTAINER ==================
 
 template <typename T>
-void _print(const vector<vector<T>> &a)
-{
-    cerr << "[\n";
-    for (auto &row : a)
-    {
-        cerr << "  ";
-        _print(row);
-        cerr << "\n";
-    }
-    cerr << "]";
-}
-
-template <typename T>
-void _print(const set<T> &a)
-{
-    cerr << "{";
-    for (auto &i : a)
-        _print(i), cerr << " ";
-    cerr << "}";
-}
-
-template <typename T>
-void _print(const multiset<T> &a)
-{
-    cerr << "{ ";
-    for (auto &i : a)
-        _print(i), cerr << " ";
-    cerr << "}";
-}
-
-template <typename T1, typename T2>
-void _print(const map<T1, T2> &a)
-{
-    cerr << "{";
-    for (auto &[key, val] : a)
-    {
+void _print(const T &a) {
+    if constexpr (is_iterable_v<T> && !is_same_v<T, string>) {
         cerr << "[";
-        _print(key);
-        cerr << " : ";
-        _print(val);
-        cerr << "] ";
+        bool first = true;
+        for (auto &x : a) {
+            if (!first) cerr << " ";
+            _print(x);
+            first = false;
+        }
+        cerr << "]";
+    } else {
+        cerr << a;
     }
-    cerr << "}";
 }
 
-template <typename T1, typename T2>
-void _print(const multimap<T1, T2> &a)
-{
-    cerr << "{";
-    for (auto &[key, val] : a)
-    {
-        cerr << "[";
-        _print(key);
-        cerr << " : ";
-        _print(val);
-        cerr << "] ";
-    }
-    cerr << "}";
-}
-
-template <typename T>
-void _print(const unordered_set<T> &a)
-{
-    cerr << "{";
-    for (auto &i : a)
-        _print(i), cerr << " ";
-    cerr << "}";
-}
-
-template <typename T1, typename T2>
-void _print(const unordered_map<T1, T2> &a)
-{
-    cerr << "{";
-    for (auto &[key, val] : a)
-    {
-        cerr << "[";
-        _print(key);
-        cerr << " : ";
-        _print(val);
-        cerr << "], ";
-    }
-    cerr << "}";
-}
-
-template <typename T1, typename T2>
-void _print(const vector<pair<T1, T2>> &a)
-{
-    cerr << "[";
-    for (auto &p : a)
-        _print(p), cerr << " ";
-    cerr << "]";
-}
+// ================== RAW ARRAY ==================
 
 template <typename T, size_t N>
-void _print(T (&a)[N])
-{
+void _print(const T (&a)[N]) {
     cerr << "[";
-    for (size_t i = 0; i < N; i++)
-    {
-        _print(a[i]); // prints element
-        if (i + 1 < N)
-            cerr << ", ";
+    for (size_t i = 0; i < N; i++) {
+        _print(a[i]);
+        if (i + 1 < N) cerr << ", ";
     }
     cerr << "]";
-}
-
-template <typename T>
-void _print(const unordered_multiset<T> &a)
-{
-    cerr << "{";
-    for (auto &i : a)
-        _print(i), cerr << " ";
-    cerr << "}";
-}
-
-template <typename T1, typename T2>
-void _print(const unordered_multimap<T1, T2> &a)
-{
-    cerr << "{";
-    for (auto &[key, val] : a)
-    {
-        cerr << "[";
-        _print(key);
-        cerr << " : ";
-        _print(val);
-        cerr << "], ";
-    }
-    cerr << "}";
-}
-
-template <typename T>
-void _print(const complex<T> &c)
-{
-    cerr << c.real() << "+" << c.imag() << "i";
-}
-
-template <typename T>
-void _print(const list<T> &a)
-{
-    cerr << "[";
-    for (auto &i : a)
-        _print(i), cerr << " ";
-    cerr << "]";
-}
-
-template <typename T>
-void _print(const forward_list<T> &a)
-{
-    cerr << "[";
-    for (auto &i : a)
-        _print(i), cerr << " ";
-    cerr << "]";
-}
-
-template <typename T>
-void _print(const optional<T> &opt)
-{
-    if (opt.has_value())
-    {
-        cerr << "Some(";
-        _print(opt.value());
-        cerr << ")";
-    }
-    else
-    {
-        cerr << "None";
-    }
 }
 
 // ================= VARIADIC DEBUG =================
 
-void debug_out()
-{
-    cerr << "\n";
-}
+void debug_out() { cerr << "\n"; }
 
 template <typename T>
-void debug_out(T &&a)
-{ // universal reference
-    _print(std::forward<T>(a));
+void debug_out(T &&a) {
+    _print(forward<T>(a));
     cerr << "\n";
 }
 
 template <typename T, typename... Args>
-void debug_out(T &&a, Args &&...args)
-{
-    _print(std::forward<T>(a));
+void debug_out(T &&a, Args &&...args) {
+    _print(forward<T>(a));
     cerr << "\n";
-    debug_out(std::forward<Args>(args)...);
+    debug_out(forward<Args>(args)...);
 }
 
 #define dbg(...) debug_out(__VA_ARGS__)
