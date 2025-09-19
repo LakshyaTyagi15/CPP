@@ -1,6 +1,6 @@
 {
     "cmd": [
-        "g++ -std=c++23 -DLOCAL $file_name -o $file_base_name && timeout 4s ./$file_base_name < inputf.in > outputf.in"
+        "g++ -std=c++23 -Wall -Wextra -Wshadow -g -O2 -DLOCAL -fsanitize=address -fsanitize=undefined -no-pie $file_name -o $file_base_name && timeout 4s ./$file_base_name < inputf.in > outputf.in"
     ],
     "selector": "source.c++",
     "shell": true,
