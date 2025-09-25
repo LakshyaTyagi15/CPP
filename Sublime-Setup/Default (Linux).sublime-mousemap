@@ -1,0 +1,10 @@
+[
+	{ "keys": ["ctrl+a"], "command": "select_all" },
+	{
+  		"keys": ["ctrl+alt+m"],
+  		"command": "insert_cppmain",
+  		"context": [{ "key": "selector", "operator": "equal", "operand": "source.c++" }]
+	}
+
+
+]
