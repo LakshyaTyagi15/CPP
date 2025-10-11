@@ -43,6 +43,21 @@ namespace detail {
 
 } // namespace detail
 
+// ----------------------- Forward Declarations -----------------------
+// Forward declare iterable printer
+template <typename T>
+enable_if_t<detail::is_iterable_v<T> && !detail::is_std_string_v<T> && !detail::is_pair_v<T>, void>
+_print(const T &container);
+
+// Forward declare pair printer
+template <typename A, typename B>
+void _print(const pair<A,B> &p);
+
+// Forward declare tuple printer
+template <typename... Args>
+void _print(const tuple<Args...> &t);
+
+
 // ----------------------- Declarations -----------------------
 // We avoid an unconstrained template declaration; each overload is constrained.
 
@@ -86,16 +101,24 @@ void _print(const tuple<Args...> &t) {
     cerr << ")";
 }
 
-// ----------------------- C-style array -----------------------
-template <typename T, size_t N>
-void _print(T (&a)[N]) {
-    cerr << "[";
-    for (size_t i = 0; i < N; ++i) {
-        _print(a[i]);
-        if (i + 1 < N) cerr << ", ";
-    }
-    cerr << "]";
+
+
+
+// ---------- Helper for runtime-sized arrays (VLAs or new[] / pointer) ----------
+// Use this when the array length is known only at runtime. Call like:
+//    dbg_array(adj, n);
+// where adj is either `vector<T>*` (pointer) or array decayed to pointer.
+template <typename ContainerT>
+void dbg_array(ContainerT* arr, size_t n) {
+    // Convert the pointer-range into a std::vector<ContainerT>
+    std::vector<ContainerT> tmp;
+    tmp.reserve(n);
+    for (size_t i = 0; i < n; ++i) tmp.push_back(arr[i]);
+    debug_out(std::move(tmp)); // forward the newly-built vector for printing
 }
+
+
+
 
 // ----------------------- Generic iterable (single overload) -----------------------
 // Handles vector<...>, set<...>, map<...>, array<...>, deque<...>, list<...>, etc.
@@ -178,6 +201,65 @@ _print(const T &x) {
     // Attempt operator<< as last resort. If the type doesn't support it, you'll get a compile error
     cerr << x;
 }
+
+
+// ---------- Manual overloads for C-style arrays of containers ----------
+// Put these after the existing C-style array printer in your header.
+
+// 1) Compile-time C-style array of std::vector<T>
+// Handles: vector<T> adj[N];
+template <typename T, size_t N>
+void _print(std::vector<T> (&a)[N]) {
+    cerr << "[\n";
+    for (size_t i = 0; i < N; ++i) {
+        cerr << " ";
+        _print(a[i]);         // uses vector<T> printer for each element
+        if (i + 1 < N) cerr << "\n";
+    }
+    cerr << "\n]";
+}
+
+// 2) Compile-time C-style array of std::set<T>
+// Handles: set<T> adj[N];
+template <typename T, size_t N>
+void _print(std::set<T> (&a)[N]) {
+    cerr << "[\n";
+    for (size_t i = 0; i < N; ++i) {
+        cerr << " ";
+        _print(a[i]);         // uses generic iterable printer for each set
+        if (i + 1 < N) cerr << "\n";
+    }
+    cerr << "\n]";
+}
+
+// 3) Compile-time C-style array of std::vector<std::vector<T>>
+// (This is redundant because vector<T> overload covers it, but provided explicitly.)
+template <typename T, size_t N>
+void _print(std::vector<std::vector<T>> (&a)[N]) {
+    cerr << "[\n";
+    for (size_t i = 0; i < N; ++i) {
+        cerr << " ";
+        _print(a[i]);         // nested vector-of-vectors printing
+        if (i + 1 < N) cerr << "\n";
+    }
+    cerr << "\n]";
+}
+
+
+// ----------------------- C-style array -----------------------
+template <typename T, size_t N>
+void _print(T (&a)[N]) {
+    cerr << "[";
+    for (size_t i = 0; i < N; ++i) {
+        _print(a[i]);
+        if (i + 1 < N) cerr << ", ";
+    }
+    cerr << "]";
+}
+
+
+
+
 
 // ----------------------- variadic debug -----------------------
 void debug_out() { cerr << "\n"; }
