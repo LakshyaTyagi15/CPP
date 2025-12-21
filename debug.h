@@ -114,7 +114,7 @@ void dbg_array(ContainerT* arr, size_t n) {
     std::vector<ContainerT> tmp;
     tmp.reserve(n);
     for (size_t i = 0; i < n; ++i) tmp.push_back(arr[i]);
-    debug_out(std::move(tmp)); // forward the newly-built vector for printing
+    debug_out(move(tmp)); // forward the newly-built vector for printing
 }
 
 
