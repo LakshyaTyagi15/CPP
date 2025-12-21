@@ -271,6 +271,6 @@ void debug_out(T &&a, Args &&...args) {
     debug_out(forward<Args>(args)...);
 }
 
-#define dbg(...) cerr << #__VA_ARGS__ << ":- "; debug_out(__VA_ARGS__)
+#define dbg(...) debug_out(__VA_ARGS__)
 
 #endif // DEBUG
