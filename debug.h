@@ -124,10 +124,7 @@ void dbg_array(ContainerT* arr, size_t n) {
 // Handles vector<...>, set<...>, map<...>, array<...>, deque<...>, list<...>, etc.
 // Excludes std::string/string_view and std::pair to avoid ambiguity.
 template <typename T>
-enable_if_t<
-detail::is_iterable_v<T> && !detail::is_std_string_v<T> && !detail::is_pair_v<T>,
-void
->
+enable_if_t<detail::is_iterable_v<T> && !detail::is_std_string_v<T> && !detail::is_pair_v<T>, void>
 _print(const T &container) {
     // If the container's value_type is itself iterable (and not a string), print multi-line for readability.
     if constexpr (detail::has_value_type_v<T> && detail::is_iterable_v<typename T::value_type> && !detail::is_std_string_v<typename T::value_type>) {
@@ -193,10 +190,7 @@ void _print(priority_queue<T, Container, Compare> pq) {
 // ----------------------- Fallback for user types that support operator<< -----------------------
 // Only enabled when none of the above apply (not iterable, not arithmetic, not pair/tuple, not string)
 template <typename T>
-enable_if_t<
-!detail::is_iterable_v<T> && !is_arithmetic<T>::value && !detail::is_pair_v<T> && !detail::is_tuple_v<T> && !detail::is_std_string_v<T>,
-void
->
+enable_if_t<!detail::is_iterable_v<T> && !is_arithmetic<T>::value && !detail::is_pair_v<T> && !detail::is_tuple_v<T> && !detail::is_std_string_v<T>, void>
 _print(const T &x) {
     // Attempt operator<< as last resort. If the type doesn't support it, you'll get a compile error
     cerr << x;
@@ -209,7 +203,7 @@ _print(const T &x) {
 // 1) Compile-time C-style array of std::vector<T>
 // Handles: vector<T> adj[N];
 template <typename T, size_t N>
-void _print(std::vector<T> (&a)[N]) {
+void _print(vector<T> (&a)[N]) {
     cerr << "[\n";
     for (size_t i = 0; i < N; ++i) {
         cerr << " ";
@@ -222,7 +216,7 @@ void _print(std::vector<T> (&a)[N]) {
 // 2) Compile-time C-style array of std::set<T>
 // Handles: set<T> adj[N];
 template <typename T, size_t N>
-void _print(std::set<T> (&a)[N]) {
+void _print(set<T> (&a)[N]) {
     cerr << "[\n";
     for (size_t i = 0; i < N; ++i) {
         cerr << " ";
@@ -235,7 +229,7 @@ void _print(std::set<T> (&a)[N]) {
 // 3) Compile-time C-style array of std::vector<std::vector<T>>
 // (This is redundant because vector<T> overload covers it, but provided explicitly.)
 template <typename T, size_t N>
-void _print(std::vector<std::vector<T>> (&a)[N]) {
+void _print(vector<vector<T>> (&a)[N]) {
     cerr << "[\n";
     for (size_t i = 0; i < N; ++i) {
         cerr << " ";
