@@ -3,7 +3,6 @@
 
 #include <bits/stdc++.h>
 using namespace std;
-using ll = long long;
 
 // ----------------------- Traits -----------------------
 namespace detail {
@@ -110,8 +109,8 @@ void _print(const tuple<Args...> &t) {
 // where adj is either `vector<T>*` (pointer) or array decayed to pointer.
 template <typename ContainerT>
 void dbg_array(ContainerT* arr, size_t n) {
-    // Convert the pointer-range into a std::vector<ContainerT>
-    std::vector<ContainerT> tmp;
+    // Convert the pointer-range into a vector<ContainerT>
+    vector<ContainerT> tmp;
     tmp.reserve(n);
     for (size_t i = 0; i < n; ++i) tmp.push_back(arr[i]);
     debug_out(move(tmp)); // forward the newly-built vector for printing
@@ -122,7 +121,7 @@ void dbg_array(ContainerT* arr, size_t n) {
 
 // ----------------------- Generic iterable (single overload) -----------------------
 // Handles vector<...>, set<...>, map<...>, array<...>, deque<...>, list<...>, etc.
-// Excludes std::string/string_view and std::pair to avoid ambiguity.
+// Excludes string/string_view and pair to avoid ambiguity.
 template <typename T>
 enable_if_t<detail::is_iterable_v<T> && !detail::is_std_string_v<T> && !detail::is_pair_v<T>, void>
 _print(const T &container) {
@@ -190,7 +189,7 @@ void _print(priority_queue<T, Container, Compare> pq) {
 // ----------------------- Fallback for user types that support operator<< -----------------------
 // Only enabled when none of the above apply (not iterable, not arithmetic, not pair/tuple, not string)
 template <typename T>
-enable_if_t<!detail::is_iterable_v<T> && !is_arithmetic<T>::value && !detail::is_pair_v<T> && !detail::is_tuple_v<T> && !detail::is_std_string_v<T>, void>
+enable_if_t<!detail::is_iterable_v<T> && !is_arithmetic<T>::value && !detail::is_pair_v<T> && !detail::is_tuple_v<T> && !detail::is_std_string_v<T>,void>
 _print(const T &x) {
     // Attempt operator<< as last resort. If the type doesn't support it, you'll get a compile error
     cerr << x;
@@ -267,10 +266,10 @@ void debug_out(T &&a) {
 template <typename T, typename... Args>
 void debug_out(T &&a, Args &&...args) {
     _print(forward<T>(a));
-    cerr << "\n";
+    cerr << ", ";
     debug_out(forward<Args>(args)...);
 }
 
-#define dbg(...) debug_out(__VA_ARGS__)
+#define dbg(...) cerr << #__VA_ARGS__ << ":- "; debug_out(__VA_ARGS__)
 
 #endif // DEBUG
